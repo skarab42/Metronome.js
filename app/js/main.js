@@ -180,6 +180,28 @@
     }
 
     //-------------------------------------------------------------------------
+    // external sounds managment
+    //-------------------------------------------------------------------------
+    function loadSound(uri, callback) {
+        var request = new XMLHttpRequest();
+        request.responseType = 'arraybuffer';
+        request.open('GET', uri, true); 
+        request.onload = function() {
+            audioContext.decodeAudioData(request.response, function(buffer) {
+                callback(buffer);
+            });
+        };
+        request.send();
+    }
+
+    function playBuffer(buffer, time) {
+        source = audioContext.createBufferSource();
+        source.buffer = buffer; 
+        source.connect(audioContext.destination);
+        source.start(time);
+    }
+
+    //-------------------------------------------------------------------------
     // user interface creation
     //-------------------------------------------------------------------------
     // main div to append elements
@@ -196,7 +218,7 @@
     // global AudioContext
     var audioContext = new window.AudioContext();
 
-    // metronome instances
+    // metronome 1
     var metronome_1 = new Metronome({
         sheduler : sheduler,
         draw : function(beats, bars) {
@@ -204,8 +226,19 @@
         }
     });
 
+    // metronome 2 tick/tack sounds
+    var tick = null;
+    var tack = null;
+    
+    // load tick/tack sounds
+    loadSound('wav/tick.wav', function(data){ tick = data; });
+    loadSound('wav/tack.wav', function(data){ tack = data; });
+
+    // metronome 2
     var metronome_2 = new Metronome({
-        sheduler : sheduler,
+        sheduler : function(beats, time) {
+            playBuffer(beats == 1 ? tack : tick, time);
+        },
         draw : function(beats, bars) {
             draw(metronomePanel_2, beats, bars)
         }
