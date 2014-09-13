@@ -18,9 +18,17 @@ body {
 	margin: 20px;
 }
 
-#title {
+#title, .title {
 	font-size: 2em;
 	font-weight: bold;
 	margin-bottom: 10px;
 	border-bottom: 1px #ccc solid;
+}
+
+.title {
+	font-size: 1.2em;
+}
+
+.panel {
+	margin: 20px;
 }
