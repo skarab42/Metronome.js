@@ -1,11 +1,19 @@
+// global timeout
 var timeout = null;
 
-function sheduler() {
+// timer worker
+function timer() {
 	postMessage('tick');
-	setTimeout(sheduler, timeout);
+	setTimeout(timer, timeout);
 }
 
+// on message received
 onmessage = function (e) {
-	timeout = e.data;
-	sheduler();
+	// update timeout
+	timeout = e.data.timeout;
+	
+	// if start command, run timer
+	if (e.data.cmd == 'start') {
+		timer();
+	}
 };

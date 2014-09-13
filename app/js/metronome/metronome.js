@@ -106,6 +106,36 @@ SOFTWARE.
         this._updateBeatDuration();
     };
 
+    /** set/get sheduler timeout */
+    Metronome.prototype.timeout = function(timeout) {
+        // getter
+        if (! arguments.length) {
+            return this._timeout;
+        }
+
+        // setter
+        this._timeout = timeout;
+
+        // update worker timeout if started
+        if (this._playing && this._worker) {
+            this._worker.postMessage({
+                cmd     : 'update', 
+                timeout : this._timeout
+            });
+        }
+    };
+
+    /** set/get sheduler lookahead */
+    Metronome.prototype.lookahead = function(lookahead) {
+        // getter
+        if (! arguments.length) {
+            return this._lookahead;
+        }
+
+        // setter
+        this._lookahead = lookahead;
+    };
+
     /** sheduler (beat number, shedule time) */
     Metronome.prototype.sheduler = function(beats, time) {
         var o = this._context.createOscillator();
@@ -157,8 +187,7 @@ SOFTWARE.
             this.sheduler(this._nextBeat, this._nextBeatTime);
 
             // push beat in queue
-            this._beatsQueue.push(
-            {
+            this._beatsQueue.push({
                 beat : this._nextBeat,
                 time : this._nextBeatTime
             });
@@ -191,7 +220,10 @@ SOFTWARE.
             self._sheduler();
         });
 
-        this._worker.postMessage(this._timeout);
+        this._worker.postMessage({
+            cmd     : 'start', 
+            timeout : this._timeout
+        });
     };
 
     /** pause metronome (restart on next beat, not at stop time) */
