@@ -32,3 +32,87 @@ body {
 .panel {
 	margin: 20px;
 }
+
+input, select, button {
+	height: 24px;
+	border: 1px #ccc solid;
+}
+
+label, .counters {
+	padding: 10px;
+	font-weight: bold;
+	border-radius: 6px;
+	margin-right: 10px;
+	display: inline-block;
+	background-color: #eee;
+	border: 1px #ccc solid;
+   	background-image: linear-gradient(#eee, #ccc);
+}
+
+button {
+	color: #555;
+	width: 60px;
+	height: 44px;
+	outline: none;
+    cursor: pointer;
+    font-weight: bold;
+	margin-right: 10px;
+	border-radius: 4px;
+	background-color: #fff;
+	box-shadow: #eee 1px 1px 0px;
+   	background-image: linear-gradient(#fff, #eee);
+}
+
+button:active {
+	box-shadow: #999 1px 1px 0px inset;
+}
+
+button:hover {
+   	color: #fff;
+   	background-image: linear-gradient(#F6A5A5, #D22323);
+}
+
+.tempoInput {
+	width: 50px;
+	text-align: center;
+}
+
+.tempoInput, .timeSignatureInput {
+	margin-left: 10px;
+}
+
+.counters {
+	line-height: 22px;
+}
+
+.beatsCounter, .barsCounter, .light {
+	height: 22px;
+	margin-right: 10px;
+	display: inline-block;
+}
+
+.light {
+	width: 22px;
+	border-radius: 50%;
+	margin-bottom: -6px;
+	border: 1px #aaa solid;
+	background-color: #fff;
+    box-shadow: #aaa 0px 0px 5px 1px, inset #999 0 -1px 9px;
+}
+
+.highlight .light {
+    background-color: #55FF37;
+    border: 1px #2E843B solid;
+	box-shadow: #2E843B 0px 0px 5px 1px, inset #2E843B 0 -1px 9px;
+}
+
+.highlight.firstBeat .light {
+    background-color: #FF3737;
+    border: 1px #842E2E solid;
+	box-shadow: #842E2E 0px 0px 5px 1px, inset #842E2E 0 -1px 9px;
+}
+
+.barsCounter {
+	padding-left: 10px;
+	border-left: 1px #ccc solid;
+}

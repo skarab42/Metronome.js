@@ -48,12 +48,16 @@
         ui.tempoInput   = uiInputNumberElement(id + '_tempo', 'tempoInput', 20, 240, 90);
         ui.tsLabel      = uiLabelElement(id + '_timeSignature', 'timeSignatureLabel');
         ui.tsSelect     = uiSelectElement(id + '_timeSignature', 'timeSignatureInput');
+        ui.controls     = uiElement('span', id + '_controls', 'controls');
         ui.playButton   = uiElement('button', id + '_playButton', 'playButton');
         ui.stopButton   = uiElement('button', id + '_stopButton', 'stopButton');
         ui.resetButton  = uiElement('button', id + '_resetButton', 'resetButton');
         ui.counters     = uiElement('span', id + '_counters', 'counters');
         ui.beatsCounter = uiElement('span', id + '_beatsCounter', 'beatsCounter');
+        ui.beats        = uiElement('span', id + '_beats', 'beats');
         ui.barsCounter  = uiElement('span', id + '_barsCounter', 'barsCounter');
+        ui.bars         = uiElement('span', id + '_bars', 'bars');
+        ui.light        = uiElement('span', id + '_light', 'light');
 
         // title
         ui.title.html('metronome #' + (uid - 1));
@@ -80,26 +84,28 @@
 
         ui.tsLabel.append(ui.tsSelect);
 
-        // buttons
+        // controls
         ui.playButton.html('play');
         ui.stopButton.html('stop');
         ui.resetButton.html('reset');
+        ui.controls.append(ui.playButton);
+        ui.controls.append(ui.stopButton);
+        ui.controls.append(ui.resetButton);
 
         // counters
-        ui.beatsCounter.html('0');
-        ui.barsCounter.html('0');
-        ui.counters.append(' beats : ');
+        ui.beats.html('0');
+        ui.bars.html('0');
+        ui.counters.append(ui.light);
+        ui.beatsCounter.append('beats : ', ui.beats);
         ui.counters.append(ui.beatsCounter);
-        ui.counters.append(' - bars : ');
+        ui.barsCounter.append('bars : ', ui.bars);
         ui.counters.append(ui.barsCounter);
 
         // appends
         ui.panel.append(ui.title);
         ui.panel.append(ui.tempoLabel);
         ui.panel.append(ui.tsLabel);
-        ui.panel.append(ui.playButton);
-        ui.panel.append(ui.stopButton);
-        ui.panel.append(ui.resetButton);
+        ui.panel.append(ui.controls);
         ui.panel.append(ui.counters);
 
         // return panel
@@ -131,9 +137,10 @@
 
         ui.stopButton.on('click', function() {
             metronome.stop();
-            ui.beatsCounter.html('0');
-            ui.barsCounter.html('0');
+            ui.beats.html('0');
+            ui.bars.html('0');
             ui.playButton.html('play');
+            ui.panel.removeClass('highlight firstBeat');
         });
 
         ui.resetButton.on('click', function() {
@@ -163,8 +170,25 @@
     function draw(ui, beats, bars) {
         requestAnimFrame(function() 
         {
-            ui.beatsCounter.html(beats);
-            ui.barsCounter.html(bars);
+            // update beats and bars counters
+            ui.beats.html(beats);
+            ui.bars.html(bars);
+            
+            // highlight
+            ui.panel.addClass('highlight');
+            
+            // first beat ?
+            if (beats == 1) {
+                ui.panel.addClass('firstBeat');
+            }
+            else {
+                ui.panel.removeClass('firstBeat');
+            }
+
+            // remove class after 100ms
+            setTimeout(function() {
+                ui.panel.removeClass('highlight firstBeat');
+            }, 100);
         });
     }
 
