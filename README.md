@@ -41,15 +41,21 @@ Methodes
 - **draw(beats, bars)** [void] drawing callback
   - **beats** [integer] beat number
   - **bars** [integer] bars number
-- **context()** [AudioContext] get audio context
-- **context(context)** [void] set audio context
-  - **context** [AudioContext] an AudioContext for time reference
 - **tempo()** [integer] get tempo
 - **tempo(tempo)** [void] set tempo
   - **tempo** [integer] [tempo](http://en.wikipedia.org/wiki/Tempo) (BPM)
 - **timeSignature()** [string] get time signature
 - **timeSignature(timeSignature)** [void] set time signature
   - **timeSignature** [string] [time signature](http://en.wikipedia.org/wiki/Time_signature)
+- **timeout()** [integer] get sheduler timeout
+- **timeout(timeout)** [void] set sheduler timeout
+  - **timeout** [integer] how frequently to call scheduler (ms)
+- **lookahead()** [float] get sheduler lookahead
+- **lookahead(lookahead)** [void] set sheduler lookahead
+  - **lookahead** [float] how far ahead to schedule audio (sec)
+- **context()** [AudioContext] get audio context
+- **context(context)** [void] set audio context
+  - **context** [AudioContext] an AudioContext for time reference
 
 Example
 ======
