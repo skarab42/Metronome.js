@@ -27,6 +27,10 @@ Parameters
 - **workerURI** [string] the worker URI, _default = 'js/metronome/worker.js'_
 - **sheduler** [function(beats, time)] callback to shedule audio events
 - **draw** [function(beats, bars)] callback to draw on audio events
+- **onTempoChange** [function(newValue)] called after the tempo have changed
+- **onTimeSignatureChange** [function(newValue)] called after the time signature have changed
+- **syncWith** [Metronome] an Metronome to sync with
+- **cloneFrom** [Metronome] an Metronome to clone from
 
 Methodes
 --------
