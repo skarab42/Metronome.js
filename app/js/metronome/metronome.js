@@ -48,8 +48,6 @@ SOFTWARE.
         this._id            = (params.id || uid++);
         this._context       = (params.context || new window.AudioContext());
         this._syncedWith    = null;
-        this._syncWith      = (params.syncWith || null);
-        copyFrom     = (params.cloneFrom || null);
         this._tempo         = 90;
         this._timeSignature = '4/4';
         this._beatsPerBar   = 4;
@@ -67,8 +65,11 @@ SOFTWARE.
         this._nextBeat      = 1;
         this._firstBeat     = true;
         this._beatsQueue    = [];
-        this.sheduler       = (params.sheduler || this.sheduler);
-        this.draw           = (params.draw || null);
+        
+        this.sheduler              = (params.sheduler || this.sheduler);
+        this.draw                  = (params.draw || null);
+        this.onTempoChange         = (params.onTempoChange || null);
+        this.onTimeSignatureChange = (params.onTimeSignatureChange || null);
 
         if (params.cloneFrom) {
             this.clone(params.cloneFrom);
@@ -137,12 +138,9 @@ SOFTWARE.
         this._staySynced();
 
         // trigger event
-        window.dispatchEvent(new CustomEvent('metronome:tempoChange', {
-            detail: {
-                metronome : this,
-                newValue  : this._tempo
-            }
-        }));
+        if(this.onTempoChange) {
+            this.onTempoChange(this._tempo);
+        }
     };
 
     /** set/get timeSignature */
@@ -167,12 +165,9 @@ SOFTWARE.
         this._staySynced();
 
         // trigger event
-        window.dispatchEvent(new CustomEvent('metronome:timeSignatureChange', {
-            detail: {
-                metronome : this,
-                newValue  : this._timeSignature
-            }
-        }));
+        if(this.onTimeSignatureChange) {
+            this.onTimeSignatureChange(this._timeSignature);
+        }
     };
 
     /** set/get sheduler timeout */

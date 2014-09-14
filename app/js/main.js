@@ -67,6 +67,17 @@
                 ui.playButton.html('play');
             }
         });
+
+        metronome.onTempoChange = function(tempo) {
+            ui.tempoInput.val(tempo);
+        };
+
+        metronome.onTimeSignatureChange = function(timeSignature) {
+            ui.tsSelect.find('option').each(function(i, option) {
+                var selected = option.value == timeSignature;
+                $(option).attr('selected', selected ? true : false);
+            });
+        };
     }
 
     // panels cache
@@ -415,25 +426,5 @@
     mainDiv.append(syncPanel.panel);
     mainDiv.append(clonePanel.panel);
     mainDiv.append(unsyncPanel.panel);
-
-    // global events
-    window.addEventListener('metronome:tempoChange', function(e) {
-        var metronome = e.detail.metronome;
-        var panel     = uiGetMetronomePanel(metronome);
-
-        panel.tempoInput.val(e.detail.newValue);
-    }, false);
-
-    window.addEventListener('metronome:timeSignatureChange', function(e) {
-        var metronome = e.detail.metronome;
-        var panel     = uiGetMetronomePanel(metronome);
-
-        // selected or not
-        panel.tsSelect.find('option').each(function(i, option) {
-            var selected = option.value == e.detail.newValue;
-            $(option).attr('selected', selected ? true : false);
-        })
-
-    }, false);
 
 })(this);
