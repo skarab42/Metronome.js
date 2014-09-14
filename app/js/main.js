@@ -2,9 +2,6 @@
     //-------------------------------------------------------------------------
     // user interface utilities
     //-------------------------------------------------------------------------
-    // ui globals
-    var uid = 1;
-
     // create/return (DOM:jQuery) element
     function uiElement(type, id, cls) {
         return $('<' + type + '/>').attr('id', id).addClass(cls);
@@ -34,87 +31,7 @@
         return uiElement('select', id + 'Input', cls);
     }
 
-    // create/return metronome panel
-    function uiMetronomePanel() {
-        // unique id
-        var id = 'metronome_' + uid++;
-
-        // jQuery objects
-        var ui = {};
-
-        ui.panel        = uiElement('div', id, 'panel');
-        ui.title        = uiElement('h4', id + '_title', 'title');
-        ui.tempoLabel   = uiLabelElement(id + '_tempo', 'tempoLabel');
-        ui.tempoInput   = uiInputNumberElement(id + '_tempo', 'tempoInput', 20, 240, 90);
-        ui.tsLabel      = uiLabelElement(id + '_timeSignature', 'timeSignatureLabel');
-        ui.tsSelect     = uiSelectElement(id + '_timeSignature', 'timeSignatureInput');
-        ui.controls     = uiElement('span', id + '_controls', 'controls');
-        ui.playButton   = uiElement('button', id + '_playButton', 'playButton');
-        ui.stopButton   = uiElement('button', id + '_stopButton', 'stopButton');
-        ui.resetButton  = uiElement('button', id + '_resetButton', 'resetButton');
-        ui.counters     = uiElement('span', id + '_counters', 'counters');
-        ui.beatsCounter = uiElement('span', id + '_beatsCounter', 'beatsCounter');
-        ui.beats        = uiElement('span', id + '_beats', 'beats');
-        ui.barsCounter  = uiElement('span', id + '_barsCounter', 'barsCounter');
-        ui.bars         = uiElement('span', id + '_bars', 'bars');
-        ui.light        = uiElement('span', id + '_light', 'light');
-
-        // title
-        ui.title.html('metronome #' + (uid - 1));
-
-        // tempo
-        ui.tempoLabel.append('tempo');
-        ui.tempoLabel.append(ui.tempoInput);
-        
-        // time signatures
-        ui.tsLabel.append('time signature');
-
-        var bars  = [1, 2, 3, 4, 5];
-        var notes = [1, 2, 4, 8, 16];
-        
-        for (var i in bars) {
-            for (var j in notes) {
-                var signature = $('<option />');
-                var value = bars[i] + '/' + notes[j];
-                signature.attr('selected', value == '4/4' ? true : false)
-                    .html(value).val(value);
-                ui.tsSelect.append(signature);
-            }
-        }
-
-        ui.tsLabel.append(ui.tsSelect);
-
-        // controls
-        ui.playButton.html('play');
-        ui.stopButton.html('stop');
-        ui.resetButton.html('reset');
-        ui.controls.append(ui.playButton);
-        ui.controls.append(ui.stopButton);
-        ui.controls.append(ui.resetButton);
-
-        // counters
-        ui.beats.html('0');
-        ui.bars.html('0');
-        ui.counters.append(ui.light);
-        ui.beatsCounter.append('beats : ', ui.beats);
-        ui.counters.append(ui.beatsCounter);
-        ui.barsCounter.append('bars : ', ui.bars);
-        ui.counters.append(ui.barsCounter);
-
-        // appends
-        ui.panel.append(ui.title);
-        ui.panel.append(ui.tempoLabel);
-        ui.panel.append(ui.tsLabel);
-        ui.panel.append(ui.controls);
-        ui.panel.append(ui.counters);
-
-        // return panel
-        return ui;
-    }
-
-    //-------------------------------------------------------------------------
     // ui events
-    //-------------------------------------------------------------------------
     function addMetronomeEvents(metronome, ui) {    
         ui.tempoInput.on('input', function() {
             metronome.tempo(ui.tempoInput.val());
@@ -150,6 +67,227 @@
                 ui.playButton.html('play');
             }
         });
+    }
+
+    // panels cache
+    var panels = {};
+
+    // create/return metronome panel
+    function uiMetronomePanel(metronome) {
+        // unique id
+        var id = 'metronome_' + metronome.id();
+
+        // jQuery objects
+        var ui = {};
+
+        ui.panel        = uiElement('div', id, 'panel');
+        ui.title        = uiElement('h4', id + '_title', 'title');
+        ui.tempoLabel   = uiLabelElement(id + '_tempo', 'tempoLabel');
+        ui.tempoInput   = uiInputNumberElement(id + '_tempo', 'tempoInput', 20, 240, 90);
+        ui.tsLabel      = uiLabelElement(id + '_timeSignature', 'timeSignatureLabel');
+        ui.tsSelect     = uiSelectElement(id + '_timeSignature', 'timeSignatureInput');
+        ui.controls     = uiElement('span', id + '_controls', 'controls');
+        ui.playButton   = uiElement('button', id + '_playButton', 'playButton');
+        ui.stopButton   = uiElement('button', id + '_stopButton', 'stopButton');
+        ui.resetButton  = uiElement('button', id + '_resetButton', 'resetButton');
+        ui.counters     = uiElement('span', id + '_counters', 'counters');
+        ui.beatsCounter = uiElement('span', id + '_beatsCounter', 'beatsCounter');
+        ui.beats        = uiElement('span', id + '_beats', 'beats');
+        ui.barsCounter  = uiElement('span', id + '_barsCounter', 'barsCounter');
+        ui.bars         = uiElement('span', id + '_bars', 'bars');
+        ui.light        = uiElement('span', id + '_light', 'light');
+
+        // title
+        ui.title.html('metronome #' + metronome.id());
+
+        // tempo
+        ui.tempoLabel.append('tempo');
+        ui.tempoLabel.append(ui.tempoInput);
+        
+        // time signatures
+        ui.tsLabel.append('time signature');
+
+        var bars  = [1, 2, 3, 4, 5];
+        var notes = [1, 2, 4, 8, 16];
+        
+        for (var i in bars) {
+            for (var j in notes) {
+                var signature = $('<option />');
+                var value = bars[i] + '/' + notes[j];
+                signature.attr('selected', value == '4/4' ? true : false)
+                    .html(value).val(value);
+                ui.tsSelect.append(signature);
+            }
+        }
+
+        ui.tsLabel.append(ui.tsSelect);
+
+        // add metronomes events
+        addMetronomeEvents(metronome, ui);
+
+        // controls
+        ui.playButton.html('play');
+        ui.stopButton.html('stop');
+        ui.resetButton.html('reset');
+        ui.controls.append(ui.playButton);
+        ui.controls.append(ui.stopButton);
+        ui.controls.append(ui.resetButton);
+
+        // counters
+        ui.beats.html('0');
+        ui.bars.html('0');
+        ui.counters.append(ui.light);
+        ui.beatsCounter.append('beats : ', ui.beats);
+        ui.counters.append(ui.beatsCounter);
+        ui.barsCounter.append('bars : ', ui.bars);
+        ui.counters.append(ui.barsCounter);
+
+        // appends
+        ui.panel.append(ui.title);
+        ui.panel.append(ui.tempoLabel);
+        ui.panel.append(ui.tsLabel);
+        ui.panel.append(ui.controls);
+        ui.panel.append(ui.counters);
+
+        // push panel in cache
+        panels[id] = ui;
+        
+        // return panel
+        return ui;
+    }
+
+    // get metronome panel
+    function uiGetMetronomePanel(metronome) {
+        return panels['metronome_' + metronome.id()];
+    }
+
+    // create/return metronome panel
+    function uiSyncPanel() {
+        // jQuery objects
+        var ui = {};
+
+        ui.panel        = uiElement('div', 'sync', 'panel');
+        ui.title        = uiElement('h4', 'syncTitle', 'title');
+        ui.syncButton_1 = uiElement('button', 'syncButton_1', 'syncButton');
+        ui.syncButton_2 = uiElement('button', 'syncButton_1', 'syncButton');
+        ui.syncButton_3 = uiElement('button', 'syncButton_3', 'syncButton');
+        ui.syncButton_4 = uiElement('button', 'syncButton_4', 'syncButton');
+
+        // title
+        ui.title.html('metronome syncronization');
+        
+        // sync button text
+        ui.syncButton_1.html('Sync [metronome #1] with [metronome #2]<br />Next beat');
+        ui.syncButton_2.html('Sync [metronome #2] with [metronome #1]<br />Next beat');
+        ui.syncButton_3.html('Sync [metronome #1] with [metronome #2]<br />Next beat + tempo + time signature');
+        ui.syncButton_4.html('Sync [metronome #2] with [metronome #1]<br />Next beat + tempo + time signature');
+
+        // buttons event
+        ui.syncButton_1.on('click', function() {
+            metronome_1.sync(metronome_2, true);
+        });
+
+        ui.syncButton_2.on('click', function() {
+            metronome_2.sync(metronome_1, true);
+        });
+
+        ui.syncButton_3.on('click', function() {
+            metronome_1.sync(metronome_2, false); // default
+        });
+
+        ui.syncButton_4.on('click', function() {
+            metronome_2.sync(metronome_1, false); // default
+        });
+
+        // appends
+        ui.panel.append(ui.title);
+        ui.panel.append(ui.syncButton_1);
+        ui.panel.append(ui.syncButton_2);
+        ui.panel.append('<br />');
+        ui.panel.append(ui.syncButton_3);
+        ui.panel.append(ui.syncButton_4);
+
+        // return panel
+        return ui;
+    }
+
+    // create/return metronome panel
+    function uiClonePanel() {
+        // jQuery objects
+        var ui = {};
+
+        ui.panel         = uiElement('div', 'clone', 'panel');
+        ui.title         = uiElement('h4', 'cloneTitle', 'title');
+        ui.cloneButton_1 = uiElement('button', 'cloneButton_1', 'cloneButton');
+        ui.cloneButton_2 = uiElement('button', 'cloneButton_2', 'cloneButton');
+
+        // title
+        ui.title.html('metronome cloning');
+        
+        // clone button text
+        ui.cloneButton_1.html('Clone [metronome #1] into [metronome #2]<br />All parameters');
+        ui.cloneButton_2.html('Clone [metronome #2] into [metronome #1]<br />All parameters');
+
+        // buttons event
+        ui.cloneButton_1.on('click', function() {
+            metronome_1.clone(metronome_2);
+        });
+
+        ui.cloneButton_2.on('click', function() {
+            metronome_2.clone(metronome_1);
+        });
+
+        // appends
+        ui.panel.append(ui.title);
+        ui.panel.append(ui.cloneButton_1);
+        ui.panel.append(ui.cloneButton_2);
+
+        // return panel
+        return ui;
+    }
+
+    // create/return metronome panel
+    function uiUnsyncPanel() {
+        // jQuery objects
+        var ui = {};
+
+        ui.panel          = uiElement('div', 'unsync', 'panel');
+        ui.title          = uiElement('h4', 'unsyncTitle', 'title');
+        ui.unsyncButton_1 = uiElement('button', 'unsyncButton_1', 'unsyncButton');
+        ui.unsyncButton_2 = uiElement('button', 'unsyncButton_2', 'unsyncButton');
+        ui.unsyncButton_3 = uiElement('button', 'unsyncButton_3', 'unsyncButton');
+
+        // title
+        ui.title.html('metronome unsync');
+        
+        // unsync button text
+        ui.unsyncButton_1.html('Unsync [metronome #1] from [metronome #2]');
+        ui.unsyncButton_2.html('Unsync [metronome #2] from [metronome #1]');
+        ui.unsyncButton_3.html('Unlink all metronome syncronization');
+
+        // buttons event
+        ui.unsyncButton_1.on('click', function() {
+            metronome_1.sync(null);
+        });
+
+        ui.unsyncButton_2.on('click', function() {
+            metronome_2.sync(null);
+        });
+
+        ui.unsyncButton_3.on('click', function() {
+            metronome_1.sync(null);
+            metronome_2.sync(null);
+        });
+
+        // appends
+        ui.panel.append(ui.title);
+        ui.panel.append(ui.unsyncButton_1);
+        ui.panel.append(ui.unsyncButton_2);
+        ui.panel.append('<br />');
+        ui.panel.append(ui.unsyncButton_3);
+
+        // return panel
+        return ui;
     }
 
     //-------------------------------------------------------------------------
@@ -206,6 +344,7 @@
     //-------------------------------------------------------------------------
     // external sounds managment
     //-------------------------------------------------------------------------
+    // load sound file
     function loadSound(uri, callback) {
         var request = new XMLHttpRequest();
         request.responseType = 'arraybuffer';
@@ -218,6 +357,7 @@
         request.send();
     }
 
+    // shedule/play AudioBuffer at time
     function playBuffer(buffer, time) {
         source = audioContext.createBufferSource();
         source.buffer = buffer; 
@@ -228,17 +368,6 @@
     //-------------------------------------------------------------------------
     // user interface creation
     //-------------------------------------------------------------------------
-    // main div to append elements
-    var mainDiv = $('#main');
-
-    // metronome panels creation
-    var metronomePanel_1 = uiMetronomePanel();
-    var metronomePanel_2 = uiMetronomePanel();
-
-    // append to main div
-    mainDiv.append(metronomePanel_1.panel);
-    mainDiv.append(metronomePanel_2.panel);
-
     // global AudioContext
     var audioContext = new window.AudioContext();
 
@@ -268,107 +397,43 @@
         }
     });
 
-    // add metronomes events
-    addMetronomeEvents(metronome_1, metronomePanel_1);
-    addMetronomeEvents(metronome_2, metronomePanel_2);
+    // main div to append elements
+    var mainDiv = $('#main');
+
+    // metronome panels creation
+    var metronomePanel_1 = uiMetronomePanel(metronome_1);
+    var metronomePanel_2 = uiMetronomePanel(metronome_2);
+
+    // sync and clone panel creation
+    var syncPanel   = uiSyncPanel();
+    var clonePanel  = uiClonePanel();
+    var unsyncPanel = uiUnsyncPanel();
+
+    // append panel to main div
+    mainDiv.append(metronomePanel_1.panel);
+    mainDiv.append(metronomePanel_2.panel);
+    mainDiv.append(syncPanel.panel);
+    mainDiv.append(clonePanel.panel);
+    mainDiv.append(unsyncPanel.panel);
+
+    // global events
+    window.addEventListener('metronome:tempoChange', function(e) {
+        var metronome = e.detail.metronome;
+        var panel     = uiGetMetronomePanel(metronome);
+
+        panel.tempoInput.val(e.detail.newValue);
+    }, false);
+
+    window.addEventListener('metronome:timeSignatureChange', function(e) {
+        var metronome = e.detail.metronome;
+        var panel     = uiGetMetronomePanel(metronome);
+
+        // selected or not
+        panel.tsSelect.find('option').each(function(i, option) {
+            var selected = option.value == e.detail.newValue;
+            $(option).attr('selected', selected ? true : false);
+        })
+
+    }, false);
 
 })(this);
-
-
-/*// global AudioContext, automatically created if not provided
-var audioContext = new window.AudioContext();
-
-// metronome instance
-var metronome = new Metronome({
-    timeSignature : '4/4',                    // time signature, default: 4/4
-    tempo         : 90,                       // min:20, max:240, default: 90
-    timeout       : 25,                       // How frequently to call scheduler (ms), default: 25
-    lookahead     : 0.1,                      // How far ahead to schedule audio (sec), default: 0.1
-    context       : audioContext,             // for internal time managment
-    workerURI     : 'js/metronome/worker.js', // timer worker URI
-    
-    // basic sheduler callback implementation (beat number, beat time)
-    sheduler : function(beats, time) { 
-        var o = audioContext.createOscillator();
-        o.frequency.value = beats == 1 ? 440 : 220;
-        o.connect(audioContext.destination);
-        o.start(time);
-        o.stop(time + 0.05);
-    }
-});
-
-// user interface
-var tempoInput    = $('#tempo');
-var timeSignature = $('#timeSignature');
-var playButton    = $('#playButton');
-var stopButton    = $('#stopButton');
-var resetButton   = $('#resetButton');
-var beatsCounter  = $('#beatsCounter');
-var barsCounter   = $('#barsCounter');
-
-var bars  = [1, 2, 3, 4, 5];
-var notes = [1, 2, 4, 8, 16];
-
-for (var i in bars) {
-    for (var j in notes) {
-        var signature = $('<option />');
-        var value = bars[i] + '/' + notes[j];
-        signature.attr('selected', value == '4/4' ? true : false)
-            .html(value).val(value);
-        timeSignature.append(signature);
-    }
-}
-
-tempoInput.on('input', function() {
-    metronome.tempo(tempoInput.val());
-});
-
-timeSignature.on('change', function() {
-    metronome.timeSignature(timeSignature.val());
-});
-
-playButton.on('click', function() {
-    if (metronome.isPlaying()) {
-        metronome.pause();
-        playButton.html('resume');
-    }
-    else {
-        metronome.play();
-        playButton.html('pause');
-    }
-});
-
-stopButton.on('click', function() {
-    metronome.stop();
-    beatsCounter.html('0');
-    barsCounter.html('0');
-    playButton.html('play');
-});
-
-resetButton.on('click', function() {
-    metronome.reset();
-
-    if (! metronome.isPlaying()) {
-        playButton.html('play');
-    }
-});
-
-window.requestAnimFrame = (function(){
-    return  window.requestAnimationFrame       ||
-            window.webkitRequestAnimationFrame ||
-            window.mozRequestAnimationFrame    ||
-            function(callback, element){
-                window.setTimeout(callback, 1000 / 60);
-            };
-})();
-
-metronome.draw = function(beats, bars) {
-    requestAnimFrame(function() 
-    {
-        beatsCounter.html(beats);
-        barsCounter.html(bars);
-    });
-}
-
-console.log(metronome);
-*/

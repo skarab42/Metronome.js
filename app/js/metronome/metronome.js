@@ -23,6 +23,18 @@ SOFTWARE.
 */
 
 (function (window) {
+    // global uid
+    var uid = 1;
+
+    // clone/copy literal object or variable value
+    var copy = function(input, isVar) {
+        if (isVar) {
+            return copy({v: input}).v;
+        }
+
+        return JSON.parse(JSON.stringify(input));
+    };
+
     /** Metronome constructor */
     function Metronome(params) {
         // force instanciation
@@ -33,7 +45,11 @@ SOFTWARE.
         // init parameters
         params = params || {};
 
+        this._id            = (params.id || uid++);
         this._context       = (params.context || new window.AudioContext());
+        this._syncedWith    = null;
+        this._syncWith      = (params.syncWith || null);
+        copyFrom     = (params.cloneFrom || null);
         this._tempo         = 90;
         this._timeSignature = '4/4';
         this._beatsPerBar   = 4;
@@ -41,21 +57,41 @@ SOFTWARE.
         this._beatDuration  = 0.6666666666666666;
         this._playing       = false;
         this._worker        = null;
-        this._workerURI     = params.workerURI || 'js/metronome/worker.js';
-        this._timeout       = params.timeout || 25;
-        this._lookahead     = params.lookahead || 0.1;
+        this._workerURI     = (params.workerURI || 'js/metronome/worker.js');
+        this._timeout       = (params.timeout || 25);
+        this._lookahead     = (params.lookahead || 0.1);
         this._nextBeatTime  = 0;
+        this._lastBeatTime  = 0;
         this._beatsCount    = 0;
         this._barsCount     = 0;
         this._nextBeat      = 1;
         this._firstBeat     = true;
         this._beatsQueue    = [];
-        this.sheduler       = params.sheduler || this.sheduler;
-        this.draw           = params.draw || null;
+        this.sheduler       = (params.sheduler || this.sheduler);
+        this.draw           = (params.draw || null);
 
-        params.tempo && this.tempo(params.tempo);
-        params.timeSignature && this.timeSignature(params.timeSignature);
+        if (params.cloneFrom) {
+            this.clone(params.cloneFrom);
+        }
+        else if (params.syncWith) {
+            this.sync(params.syncWith);
+        }
+        else {
+            params.tempo && this.tempo(params.tempo);
+            params.timeSignature && this.timeSignature(params.timeSignature);
+        }
     }
+
+    /** set/get id */
+    Metronome.prototype.id = function(id) {
+        // getter
+        if (! arguments.length) {
+            return this._id;
+        }
+
+        // setter
+        this._id = id;
+    };
 
     /** set/get audio context */
     Metronome.prototype.context = function(context) {
@@ -73,6 +109,17 @@ SOFTWARE.
         this._beatDuration = (60 / this._tempo) / (this._beatValue / 4);
     };
 
+    // stay in sync on temp/time signature change
+    Metronome.prototype._staySynced = function() {
+        // syned metronome
+        if (this._syncedWith) {
+            this._lastBeatTime = copy(this._syncedWith._lastBeatTime, true);
+        }
+
+        this._nextBeatTime = this._lastBeatTime + this._beatDuration;
+        this._beatsQueue   = [];
+    };
+
     /** set/get tempo */
     Metronome.prototype.tempo = function(tempo) {
         // getter
@@ -85,6 +132,17 @@ SOFTWARE.
 
         // update beat duration
         this._updateBeatDuration();
+
+        // stay synced whit time
+        this._staySynced();
+
+        // trigger event
+        window.dispatchEvent(new CustomEvent('metronome:tempoChange', {
+            detail: {
+                metronome : this,
+                newValue  : this._tempo
+            }
+        }));
     };
 
     /** set/get timeSignature */
@@ -104,6 +162,17 @@ SOFTWARE.
         this._beatValue   = r[1];
 
         this._updateBeatDuration();
+
+        // stay synced whit time
+        this._staySynced();
+
+        // trigger event
+        window.dispatchEvent(new CustomEvent('metronome:timeSignatureChange', {
+            detail: {
+                metronome : this,
+                newValue  : this._timeSignature
+            }
+        }));
     };
 
     /** set/get sheduler timeout */
@@ -192,7 +261,8 @@ SOFTWARE.
                 time : this._nextBeatTime
             });
 
-            // next beat time
+            // last and next beat time
+            this._lastBeatTime = this._nextBeatTime;
             this._nextBeatTime += this._beatDuration;
         }
 
@@ -201,12 +271,17 @@ SOFTWARE.
     };
 
     /** play metronome */
-    Metronome.prototype.play = function() {
+    Metronome.prototype.play = function(time) {
         // allready playing
         if (this._playing) return;
 
-        // next beat as soon as possible
-        this._nextBeatTime = this._context.currentTime;
+        // syned metronome and no provided time
+        if (! time && this._syncedWith) {
+            time = copy(this._syncedWith._nextBeatTime, true);
+        }
+
+        // next beat at time or as soon as possible
+        this._nextBeatTime = time || this._context.currentTime;
 
         // update status
         this._playing = true;
@@ -242,6 +317,7 @@ SOFTWARE.
     /** reset metronome */
     Metronome.prototype.reset = function() {
         this._nextBeatTime = this._context.currentTime;
+        this._lastBeatTime = 0;
         this._beatsCount   = 0;
         this._barsCount    = 0;
         this._nextBeat     = 1;
@@ -261,6 +337,56 @@ SOFTWARE.
     /** return playing status */
     Metronome.prototype.isPlaying = function() {
         return this._playing;
+    };
+
+    /** sync with the provided metronome instance */
+    Metronome.prototype.sync = function(metronome, simple) {
+        // unsync
+        if (! (metronome instanceof Metronome)) {
+            return this._syncedWith = null;
+        }
+
+        // reference synced metronome
+        this._syncedWith = metronome;
+
+        // clone values
+        var clone = copy({
+            tempo         : metronome._tempo,
+            timeSignature : metronome._timeSignature,
+            nextBeatTime  : metronome._nextBeatTime,
+            lastBeatTime  : metronome._lastBeatTime
+        });
+
+        // copy time/tempo variables
+        this._lastBeatTime = clone.lastBeatTime;
+        this._nextBeatTime = clone.nextBeatTime;
+
+        if (! simple) {
+            this.tempo(clone.tempo);
+            this.timeSignature(clone.timeSignature);
+        }
+    };
+
+    /** clone from the provided metronome instance */
+    Metronome.prototype.clone = function(metronome) {
+        // sync with metronome
+        this.sync(metronome);
+
+        // clone values
+        var clone = copy({
+            beatsCount : metronome._beatsCount,
+            barsCount  : metronome._barsCount,
+            nextBeat   : metronome._nextBeat,
+            firstBeat  : metronome._firstBeat,
+            beatsQueue : metronome._beatsQueue
+        });
+        
+        // copy all counters clone
+        this._beatsCount = clone.beatsCount;
+        this._barsCount  = clone.barsCount;
+        this._nextBeat   = clone.nextBeat;
+        this._firstBeat  = clone.firstBeat;
+        this._beatsQueue = clone.beatsQueue;
     };
     
     // export

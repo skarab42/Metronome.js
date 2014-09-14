@@ -42,11 +42,15 @@ label, .counters {
 	padding: 10px;
 	font-weight: bold;
 	border-radius: 6px;
-	margin-right: 10px;
 	display: inline-block;
 	background-color: #eee;
 	border: 1px #ccc solid;
    	background-image: linear-gradient(#eee, #ccc);
+}
+
+label, button, .counters {
+	margin-right: 10px;
+	margin-bottom: 10px;
 }
 
 button {
@@ -56,7 +60,6 @@ button {
 	outline: none;
     cursor: pointer;
     font-weight: bold;
-	margin-right: 10px;
 	border-radius: 4px;
 	background-color: #fff;
 	box-shadow: #eee 1px 1px 0px;
@@ -115,4 +118,12 @@ button:hover {
 .barsCounter {
 	padding-left: 10px;
 	border-left: 1px #ccc solid;
+}
+
+.tempoLabel, .timeSignatureLabel, .counters {
+	text-shadow: 1px 1px 1px #fff;
+}
+
+#sync button, #clone button, #unsync button {
+	width: 320px;
 }
